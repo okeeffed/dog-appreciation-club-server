@@ -5,6 +5,11 @@ const flickrOptions = {
 	secret: process.env.FLICKR_API_SECRET
 };
 
+/**
+ * Fetch images of a certain dog
+ * @param  {String} dog The type of dog
+ * @return {Object}     Return API results
+ */
 function retrieve(dog) {
 	return new Promise((resolve, reject) => {
 		Flickr.tokenOnly(flickrOptions, (err, flickr) => {
