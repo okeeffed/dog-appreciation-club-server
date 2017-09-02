@@ -5,15 +5,29 @@ const flickrOptions = {
 	secret: process.env.FLICKR_API_SECRET
 };
 
-Flickr.authenticate(flickrOptions, (err, flickr) => {
-	if (err) throw err;
+function retrieve(dog) {
+	return new Promise((resolve, reject) => {
+		Flickr.tokenOnly(flickrOptions, (err, flickr) => {
+			if (err) throw err;
+			// we can now use "flickr" as our API object
+			flickr.photos.search({
+				user_id: flickr.options.user_id,
+				page: 1,
+				per_page: 20,
+				text: dog,
+				sort: 'relevance',
+				safe_search: 1,
+				content_type: 1
+			}, function(err, result) {
+				// result is Flickr's response
+				if (err) reject(err);
 
-	// we can now use "flickr" as our API object
-	flickr.photos.search({
-		user_id: flickr.options.user_id,
-		page: 1,
-		per_page: 20
-	}, function(err, result) {
-	// result is Flickr's response
+				resolve(result);
+			});
+		});
 	});
-});
+}
+
+module.exports = {
+	retrieve
+}
