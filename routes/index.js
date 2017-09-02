@@ -10,15 +10,20 @@ module.exports = function(app) {
 	app.get('/api/v1/dog', function(req, res) {
 		Breeds.fetchInfo()
 		.then(result => {
-			console.log(res);
-			Flickr.retrieve(`${result.dog.name} puppy`)
+			Flickr.retrieve(`${result.dog.name}`)
 				.then(data => {
-					// console.log(util.inspect(data.photos.photo, {depth: null}));
 					result.photos = data.photos.photo;
+					result.photos.map((photo, index) => {
+						result.photos[index].url = `https://farm${photo.farm}.staticflickr.com/${photo.server}/${photo.id}_${photo.secret}.jpg`
+					});
+
 					console.log(result);
 					res.send(result);
 				})
-				.catch(err => console.log(err));
+				.catch(err => {
+					console.log(err.message);
+					res.status(400).send('Failed');
+				});
 	})
 	.catch(err => console.log(err.message));
 	});

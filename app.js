@@ -26,7 +26,7 @@ app.use(bodyParser.json({ type: '*/*' }));
 routes(app);
 
 // Server Setup
-const port = process.env.NODE_ENV == 'production' ? 80 : 3090;
+const port = process.env.NODE_ENV == 'production' ? 80 : 4090;
 const server = http.createServer(app);
 server.listen(port);
 console.log('Server listening on:', port);
