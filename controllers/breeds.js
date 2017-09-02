@@ -2,46 +2,66 @@ require('dotenv').config;
 const Xray = require('x-ray');
 const util = require('util');
 
-exports.fetch = function() {
+function fetchList() {
 	const x = Xray();
-	function cleanse(data) {
-		data.beers.map(beer => {
-			beer.abv = beer.abv.trim();
-			beer.ibu = beer.ibu.trim();
-			beer.checkins = beer.checkins.trim();
-			beer.my_rating = beer.ratings[0];
-			beer.global_rating = beer.ratings[1];
-			beer.first_checkin = beer.dates[0];
-			beer.last_checkin = beer.dates[1];
-		});
-
-		console.log(util.inspect(data, {depth: 4}));
-		return data;
-	}
-
 	return new Promise((resolve, reject) => {
-		x(process.env.BREEDS_URL, '.beer-item', {
-			breeds: [
+		x(process.env.BREEDS_URL, '.group', {
+			breeds: x('.group-list-item', [
 				{
-					beer: 'div.beer-details > p.name > a.track-click',
-					brewery: 'div.beer-details > p.brewery > a.track-click',
-					style: 'div.beer-details > p.style',
-					ratings: ['div.beer-details > div.ratings > div.you > p'],
-					abv: 'div.details > p.abv',
-					ibu: 'div.details > p.ibu',
-					dates: ['div.details > p.date > a > abbr'],
-					checkins: 'div.details > p.check-ins',
-					image: 'a.label > img@data-original'
+					name: '.post-title',
+					link: '.post-title@href'
 				}
-			]
+			])
 		})((err, data) => {
 			if (err) {
 				reject(err);
 			}
-			console.log(data);
-
-			// const list = cleanse(data);
 			resolve(data);
 		});
 	});
+}
+
+function fetch(dog) {
+	const x = Xray();
+	return new Promise((resolve, reject) => {
+		x(dog.link, '.group', {
+			dog: x('.breed-data-item-content', {
+				info: ['p:first-child']
+			})
+		})((err, data) => {
+			if (err) {
+				reject(err);
+			}
+			data.dog.name = dog.name;
+			data.dog.link = dog.link;
+			resolve(data);
+		});
+	});
+}
+
+function fetchInfo() {
+	function getRandomInteger(min, max) {
+		min = Math.ceil(min);
+		max = Math.floor(max);
+		return Math.floor(Math.random() * (max - min)) + min;
+	}
+
+	return new Promise((resolve, reject) => {
+		fetchList()
+		.then(data => {
+			const random = getRandomInteger(0, data.breeds.length - 1);
+			const dog = data.breeds[random];
+
+			fetch(dog)
+				.then(res => resolve(res))
+				.catch(err => reject(err));
+		})
+		.catch(err => console.log(err.message));
+	});
+}
+
+module.exports = {
+	fetchList,
+	fetch,
+	fetchInfo
 }
